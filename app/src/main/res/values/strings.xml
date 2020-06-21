@@ -13,5 +13,6 @@
 
     <string name="list_empty">Список фильмов для просмотра пуст.\nВоспользуйтесь поиском.</string>
     <string name="no_results_text">Ничего не найдено :(</string>
+    <string name="error">Ошибка, проверьте соединение или попробуйте позже :(</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
 </resources>

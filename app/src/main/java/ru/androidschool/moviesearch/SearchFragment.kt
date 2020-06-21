@@ -37,6 +37,7 @@ class SearchFragment : Fragment() {
     }
 
     fun findMovies(query: String, context: Context) {
+        showLoader()
         MoviesRepository.getRepository(context)
             .searchMovies(query, object : MoviesRepository.RepositoryCallback<List<Movie>> {
                 override fun onSuccess(movies: List<Movie>?) {
@@ -45,17 +46,33 @@ class SearchFragment : Fragment() {
                     } else {
                         showEmptyMovies()
                     }
+                    hideLoader()
                 }
 
                 override fun onError() {
-                    showEmptyMovies()
+                    showError()
+                    hideLoader()
                 }
             })
+    }
+
+    fun showLoader() {
+        progress_bar.visibility = View.VISIBLE
+    }
+
+    fun hideLoader() {
+        progress_bar.visibility = View.GONE
     }
 
     fun showEmptyMovies() {
         results_recycler_view.visibility = View.GONE
         no_results_placeholder.visibility = View.VISIBLE
+    }
+
+    fun showError() {
+        results_recycler_view.visibility = View.GONE
+        no_results_placeholder.visibility = View.VISIBLE
+        no_results_placeholder.text = no_results_placeholder.context.getString(R.string.error)
     }
 
     fun showMovies(movies: List<Movie>) {
