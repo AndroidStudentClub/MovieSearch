@@ -9,7 +9,10 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_second.*
 
-class SearchFragment : Fragment() {
+class SearchFragment : Fragment(), SearchPresenter.View {
+
+    // Инициализируем SearchPresenter
+    private val presenter: SearchPresenter by lazy { SearchPresenter(MoviesRepository.getRepository(requireContext())) }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -22,45 +25,43 @@ class SearchFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Передаём view для дальнейшего вызова методов
+        presenter.attachView(this)
         search_button.setOnClickListener {
-            // 1
-            val query = search_edit_text.text.toString().trim()
-            // 2
-            if (query.isBlank()) {
-                // 3
-                Snackbar.make(view, getString(R.string.search_alert), Snackbar.LENGTH_LONG).show()
-            } else {
-                // 4
-                findMovies(query, view.context)
-            }
+            // Вызываем метод презентера, который имеет всю логику
+            presenter.search(search_edit_text.text.toString())
         }
     }
 
-    fun findMovies(query: String, context: Context) {
-        MoviesRepository.getRepository(context)
-            .searchMovies(query, object : MoviesRepository.RepositoryCallback<List<Movie>> {
-                override fun onSuccess(movies: List<Movie>?) {
-                    if (movies != null && movies.isNotEmpty()) {
-                        showMovies(movies)
-                    } else {
-                        showEmptyMovies()
-                    }
-                }
-
-                override fun onError() {
-                    showEmptyMovies()
-                }
-            })
+    // Метод для отображения UI сообщения пользователю
+    override fun showQueryRequiredMessage() {
+        Snackbar.make(requireView(), getString(R.string.search_alert), Snackbar.LENGTH_LONG).show()
     }
 
-    fun showEmptyMovies() {
+    // Метод для отображения UI загрузки
+    override fun showLoading() {
+    }
+
+    // Метод для отображения списка фильмов
+    override fun showMoviesResults(movies: List<Movie>) {
+        results_recycler_view.adapter = MoviesAdapter(movies, R.layout.list_item_movie)
+        results_recycler_view.visibility = View.VISIBLE
+        no_results_placeholder.visibility = View.GONE
+    }
+
+    // Метод для изменения и сохранения фильмов в список избранных
+    override fun refreshFavoriteStatus(movieId: Int) {
+    }
+
+    // Метод для отображения плэйсхолдера
+    override fun showEmptyMovies() {
         results_recycler_view.visibility = View.GONE
         no_results_placeholder.visibility = View.VISIBLE
     }
 
-    fun showMovies(movies: List<Movie>) {
-        results_recycler_view.adapter = MoviesAdapter(movies, R.layout.list_item_movie)
-        results_recycler_view.visibility = View.VISIBLE
-        no_results_placeholder.visibility = View.GONE
+    // Метод для удаления ссылки на view
+    override fun onDestroyView() {
+        super.onDestroyView()
+        presenter.detachView()
     }
 }
