@@ -1,23 +1,10 @@
 package ru.androidschool.moviesearch
 
-class SearchPresenter(private val repository: MoviesRepository) {
-    // 1
-    private var view: SearchPresenter.View? = null
-    private var recipes: List<Movie>? = null
+class SearchPresenter(private val repository: MoviesRepository) : BasePresenter<SearchPresenter.View>() {
 
-    // 2
-    fun attachView(view: View) {
-        this.view = view
-    }
+    private var movies: List<Movie>? = null
 
-    // 3
-    fun detachView() {
-        this.view = null
-    }
-
-    // 4
     fun search(query: String) {
-        // 5
         if (query.trim().isBlank()) {
             view?.showQueryRequiredMessage()
         } else {
@@ -25,7 +12,6 @@ class SearchPresenter(private val repository: MoviesRepository) {
         }
     }
 
-    // 6
     fun findMovies(query: String) {
         repository
             .searchMovies(query, object : MoviesRepository.RepositoryCallback<List<Movie>> {
@@ -43,7 +29,6 @@ class SearchPresenter(private val repository: MoviesRepository) {
             })
     }
 
-    // 7
     interface View {
         fun showQueryRequiredMessage()
         fun showLoading()
