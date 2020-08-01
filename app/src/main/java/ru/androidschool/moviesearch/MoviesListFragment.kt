@@ -1,48 +1,71 @@
 package ru.androidschool.moviesearch
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_first.*
 
-/**
- * A simple [Fragment] subclass as the default destination in the navigation.
- */
-class MoviesListFragment : Fragment() {
+
+// MoviesListFragment реализует интерфейс MoviesListPresenter.View
+class MoviesListFragment : Fragment(), MoviesListPresenter.View {
+
+    // Инициализируем MoviesListPresenter
+    private val presenter: MoviesListPresenter by lazy { MoviesListPresenter(MoviesRepository.getRepository(requireContext())) }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_first, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val movies = MoviesRepository.getRepository(view.context).getFavoriteMovies()
-        if (movies.isNotEmpty()) {
-            movies_recycler_view.adapter = MoviesAdapter(movies, R.layout.list_item_movie)
-            movies_recycler_view.visibility = View.VISIBLE
-            favorite_empty_placeholder.visibility = View.GONE
-        } else {
-            movies_recycler_view.visibility = View.GONE
-            favorite_empty_placeholder.visibility = View.VISIBLE
-        }
+        // Инициалищзируем view
+        presenter.attachView(this)
 
+        // Показываем сохранённые фильмы
+        presenter.getFavoriteMovies()
+
+
+        // Переход на поиск
         fab.setOnClickListener {
-            findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
+            presenter.openSearchScreen()
         }
+    }
 
-        view.findViewById<Button>(R.id.button_first).setOnClickListener {
-            findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
+    // Методы MoviesListPresenter.View
+
+    // Показываем сохранённые фильмы
+    override fun showFavoriteMovies(movies: List<Movie>) {
+        movies_recycler_view.adapter = MoviesAdapter(movies, R.layout.list_item_movie)
+        movies_recycler_view.visibility = View.VISIBLE
+        favorite_empty_placeholder.visibility = View.GONE
+    }
+
+    override fun openSearch() {
+        findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
+    }
+
+    override fun showEmptyMovies() {
+        // Показываем плэйсхолдер если фильмов нет
+        movies_recycler_view.visibility = View.GONE
+        favorite_empty_placeholder.visibility = View.VISIBLE
+
+        // Переход на поиск
+        view?.findViewById<Button>(R.id.button_first)?.setOnClickListener {
+            presenter.openSearchScreen()
         }
+    }
+
+    // Метод для удаления ссылки на view
+    override fun onDestroyView() {
+        super.onDestroyView()
+        presenter.detachView()
     }
 }
