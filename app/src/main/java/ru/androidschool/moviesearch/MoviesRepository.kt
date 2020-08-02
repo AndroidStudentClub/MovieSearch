@@ -13,22 +13,22 @@ import retrofit2.Response
 
 const val FAVORITES_KEY = "Favorites"
 
-class MoviesRepository(private val sharedPreferences: SharedPreferences) {
+class MoviesRepository(private val sharedPreferences: SharedPreferences) : MovieProvider {
 
     private val gson = Gson()
 
-    fun addFavorite(item: Movie) {
+    override fun addFavorite(item: Movie) {
         item.isFavorite = true
         val favorites = getFavoriteMovies() + item
         saveFavorites(favorites)
     }
 
-    fun removeFavorite(item: Movie) {
+    override fun removeFavorite(item: Movie) {
         val favorites = getFavoriteMovies() - item
         saveFavorites(favorites)
     }
 
-    private fun saveFavorites(favorites: List<Movie>) {
+    override fun saveFavorites(favorites: List<Movie>) {
         val editor = sharedPreferences.edit()
         editor.putString(FAVORITES_KEY, gson.toJson(favorites))
         editor.apply()
@@ -37,7 +37,7 @@ class MoviesRepository(private val sharedPreferences: SharedPreferences) {
     private inline fun <reified T> Gson.fromJson(json: String): T =
         this.fromJson<T>(json, object : TypeToken<T>() {}.type)
 
-    fun getFavoriteMovies(): List<Movie> {
+    override fun getFavoriteMovies(): List<Movie> {
         val favoritesString = sharedPreferences.getString(FAVORITES_KEY, null)
         if (favoritesString != null) {
             return gson.fromJson(favoritesString)
@@ -45,7 +45,7 @@ class MoviesRepository(private val sharedPreferences: SharedPreferences) {
         return emptyList()
     }
 
-    fun isFavorite(movie: Movie): Boolean {
+    override fun isFavorite(movie: Movie): Boolean {
         val favoritesString = sharedPreferences.getString(FAVORITES_KEY, null)
         return if (!favoritesString.isNullOrEmpty()) {
             val movies: List<Movie> = gson.fromJson(favoritesString)
@@ -55,7 +55,7 @@ class MoviesRepository(private val sharedPreferences: SharedPreferences) {
         }
     }
 
-    fun searchMovies(query: String, callback: RepositoryCallback<List<Movie>>) {
+    override fun searchMovies(query: String, callback: MovieProvider.RepositoryCallback<List<Movie>>) {
         val apiInterface = ApiClient.client?.create(MovieApiInterface::class.java)
         apiInterface?.getTopRatedMovies(language = "ru", searchQuery = query)
             ?.enqueue(object : Callback<MovieResponse?> {
@@ -93,11 +93,6 @@ class MoviesRepository(private val sharedPreferences: SharedPreferences) {
                 }
             }
         }
-    }
-
-    interface RepositoryCallback<in T> {
-        fun onSuccess(t: T?)
-        fun onError()
     }
 
     companion object {

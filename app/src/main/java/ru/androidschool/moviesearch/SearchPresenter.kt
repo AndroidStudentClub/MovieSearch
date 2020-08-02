@@ -1,6 +1,7 @@
 package ru.androidschool.moviesearch
 
-class SearchPresenter(private val repository: MoviesRepository) : BasePresenter<SearchPresenter.View>() {
+// Используется MovieProvider
+class SearchPresenter(private val repository: MovieProvider) : BasePresenter<SearchPresenter.View>() {
 
     private var movies: List<Movie>? = null
 
@@ -12,9 +13,10 @@ class SearchPresenter(private val repository: MoviesRepository) : BasePresenter<
         }
     }
 
+    // Поменяли MovieProvider.RepositoryCallback
     fun findMovies(query: String) {
         repository
-            .searchMovies(query, object : MoviesRepository.RepositoryCallback<List<Movie>> {
+            .searchMovies(query, object : MovieProvider.RepositoryCallback<List<Movie>> {
                 override fun onSuccess(movies: List<Movie>?) {
                     if (movies != null && movies.isNotEmpty()) {
                         view?.showMoviesResults(movies)
