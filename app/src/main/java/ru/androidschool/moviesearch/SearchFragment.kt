@@ -40,6 +40,15 @@ class SearchFragment : Fragment(), SearchPresenter.View {
 
     // Метод для отображения UI загрузки
     override fun showLoading() {
+        results_recycler_view.visibility = View.GONE
+        progress.visibility = View.VISIBLE
+        no_results_placeholder.visibility = View.GONE
+    }
+
+    // Метод для скрытия UI загрузки
+    override fun hideLoading() {
+        progress.visibility = View.GONE
+        no_results_placeholder.visibility = View.VISIBLE
     }
 
     // Метод для отображения списка фильмов

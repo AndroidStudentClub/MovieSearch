@@ -15,9 +15,13 @@ class SearchPresenter(private val repository: MovieProvider) : BasePresenter<Sea
 
     // Поменяли MovieProvider.RepositoryCallback
     fun findMovies(query: String) {
+        // Показываем состояние загрузки
+        view?.showLoading()
         repository
             .searchMovies(query, object : MovieProvider.RepositoryCallback<List<Movie>> {
                 override fun onSuccess(movies: List<Movie>?) {
+                    // Скрываем состояние загрузки
+                    view?.hideLoading()
                     if (movies != null && movies.isNotEmpty()) {
                         view?.showMoviesResults(movies)
                     } else {
@@ -26,6 +30,8 @@ class SearchPresenter(private val repository: MovieProvider) : BasePresenter<Sea
                 }
 
                 override fun onError() {
+                    // Скрываем состояние загрузки
+                    view?.hideLoading()
                     view?.showEmptyMovies()
                 }
             })
@@ -34,6 +40,7 @@ class SearchPresenter(private val repository: MovieProvider) : BasePresenter<Sea
     interface View {
         fun showQueryRequiredMessage()
         fun showLoading()
+        fun hideLoading()
         fun showMoviesResults(movies: List<Movie>)
         fun showEmptyMovies()
         fun refreshFavoriteStatus(movieId: Int)
